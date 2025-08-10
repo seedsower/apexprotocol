@@ -50,6 +50,7 @@ function TradePageContent() {
 	const [orderBookPrice, setOrderBookPrice] = useState<number | undefined>(
 		undefined
 	);
+	const [activeBottomTab, setActiveBottomTab] = useState<string>('positions');
 
 	// Check if user account exists
 	useEffect(() => {
@@ -83,16 +84,6 @@ function TradePageContent() {
 		console.log('Placing order:', orderData);
 		// TODO: Implement order placement
 	};
-
-	// Note: Removed wallet connection requirement - users can now see the trading interface without connecting wallet first
-
-	// Note: Removed Drift service readiness check - trading interface now loads without requiring Drift to be ready
-
-	// Note: Removed Drift error state check - trading interface now loads even with Drift connection errors
-
-	// Note: Removed full-screen create account modal - now handled in header
-
-	// Note: User account creation progress now handled in header button
 
 	// ✅ PROFESSIONAL TRADING INTERFACE - Drift-style layout
 	return (
@@ -148,12 +139,6 @@ function TradePageContent() {
 								onPriceFromOrderBook={orderBookPrice}
 							/>
 						</div>
-
-						{/* Token Balances */}
-						<div className="bg-gray-900 rounded p-4">
-							<h3 className="text-white text-sm font-medium mb-3">Balances</h3>
-							<TokenBalances />
-						</div>
 					</div>
 				</div>
 
@@ -162,25 +147,74 @@ function TradePageContent() {
 					<div className="max-w-7xl mx-auto">
 						{/* Tab Navigation */}
 						<div className="flex border-b border-gray-800">
-							<button className="px-6 py-3 text-white bg-gray-800 border-b-2 border-purple-500 text-sm font-medium">
+							<button
+								onClick={() => setActiveBottomTab('positions')}
+								className={`px-6 py-3 text-sm font-medium ${
+									activeBottomTab === 'positions'
+										? 'text-white bg-gray-800 border-b-2 border-purple-500'
+										: 'text-gray-400 hover:text-white'
+								}`}
+							>
 								Positions
 							</button>
-							<button className="px-6 py-3 text-gray-400 hover:text-white text-sm font-medium">
+							<button
+								onClick={() => setActiveBottomTab('orders')}
+								className={`px-6 py-3 text-sm font-medium ${
+									activeBottomTab === 'orders'
+										? 'text-white bg-gray-800 border-b-2 border-purple-500'
+										: 'text-gray-400 hover:text-white'
+								}`}
+							>
 								Orders
 							</button>
-							<button className="px-6 py-3 text-gray-400 hover:text-white text-sm font-medium">
+							<button
+								onClick={() => setActiveBottomTab('trades')}
+								className={`px-6 py-3 text-sm font-medium ${
+									activeBottomTab === 'trades'
+										? 'text-white bg-gray-800 border-b-2 border-purple-500'
+										: 'text-gray-400 hover:text-white'
+								}`}
+							>
 								Trades
 							</button>
-							<button className="px-6 py-3 text-gray-400 hover:text-white text-sm font-medium">
+							<button
+								onClick={() => setActiveBottomTab('balances')}
+								className={`px-6 py-3 text-sm font-medium ${
+									activeBottomTab === 'balances'
+										? 'text-white bg-gray-800 border-b-2 border-purple-500'
+										: 'text-gray-400 hover:text-white'
+								}`}
+							>
 								Balances
 							</button>
-							<button className="px-6 py-3 text-gray-400 hover:text-white text-sm font-medium">
+							<button
+								onClick={() => setActiveBottomTab('orderHistory')}
+								className={`px-6 py-3 text-sm font-medium ${
+									activeBottomTab === 'orderHistory'
+										? 'text-white bg-gray-800 border-b-2 border-purple-500'
+										: 'text-gray-400 hover:text-white'
+								}`}
+							>
 								Order History
 							</button>
-							<button className="px-6 py-3 text-gray-400 hover:text-white text-sm font-medium">
+							<button
+								onClick={() => setActiveBottomTab('positionHistory')}
+								className={`px-6 py-3 text-sm font-medium ${
+									activeBottomTab === 'positionHistory'
+										? 'text-white bg-gray-800 border-b-2 border-purple-500'
+										: 'text-gray-400 hover:text-white'
+								}`}
+							>
 								Position History
 							</button>
-							<button className="px-6 py-3 text-gray-400 hover:text-white text-sm font-medium">
+							<button
+								onClick={() => setActiveBottomTab('account')}
+								className={`px-6 py-3 text-sm font-medium ${
+									activeBottomTab === 'account'
+										? 'text-white bg-gray-800 border-b-2 border-purple-500'
+										: 'text-gray-400 hover:text-white'
+								}`}
+							>
 								Account
 							</button>
 							<div className="ml-auto flex items-center px-6">
@@ -205,7 +239,39 @@ function TradePageContent() {
 
 						{/* Tab Content */}
 						<div className="p-6">
-							<PositionsTable positions={positions} />
+							{activeBottomTab === 'positions' && (
+								<PositionsTable positions={positions} />
+							)}
+							{activeBottomTab === 'orders' && (
+								<div className="text-gray-400 text-center py-8">
+									<p>No open orders</p>
+								</div>
+							)}
+							{activeBottomTab === 'trades' && (
+								<div className="text-gray-400 text-center py-8">
+									<p>No recent trades</p>
+								</div>
+							)}
+							{activeBottomTab === 'balances' && (
+								<div className="max-w-4xl">
+									<TokenBalances />
+								</div>
+							)}
+							{activeBottomTab === 'orderHistory' && (
+								<div className="text-gray-400 text-center py-8">
+									<p>No order history</p>
+								</div>
+							)}
+							{activeBottomTab === 'positionHistory' && (
+								<div className="text-gray-400 text-center py-8">
+									<p>No position history</p>
+								</div>
+							)}
+							{activeBottomTab === 'account' && (
+								<div className="text-gray-400 text-center py-8">
+									<p>Account information</p>
+								</div>
+							)}
 						</div>
 					</div>
 				</div>

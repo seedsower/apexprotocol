@@ -99,7 +99,7 @@ export const MarketSelector: React.FC<MarketSelectorProps> = ({
 						<div
 							key={`${market.marketType}-${market.marketIndex}`}
 							onClick={() => onSelectMarket(market)}
-							className={`p-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${
+							className={`p-3 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors bg-white rounded-lg mb-2 mx-2 shadow-sm ${
 								selectorState.selectedMarket?.marketIndex ===
 									market.marketIndex &&
 								selectorState.selectedMarket?.marketType === market.marketType

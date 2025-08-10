@@ -43,8 +43,8 @@ export class DriftService extends EventEmitter {
 				wallet?.publicKey?.toString()
 			);
 
-			// Simulate initialization delay
-			await new Promise((resolve) => setTimeout(resolve, 1000));
+			// Fast initialization - minimal delay
+			await new Promise((resolve) => setTimeout(resolve, 100));
 
 			this.setState({
 				initialized: true,
@@ -125,6 +125,7 @@ export class DriftService extends EventEmitter {
 			console.log('DriftService: Fetching markets...');
 
 			// TODO: Fetch actual markets from DriftClient
+			// Fast loading - no artificial delays
 			const mockMarkets: UIMarketData[] = [
 				{
 					marketIndex: 0,
@@ -249,18 +250,134 @@ export class DriftService extends EventEmitter {
 					pythPriceId: COMMODITY_TOKENS.NG.pythPriceId || '',
 					marketAccount: {} as any,
 				},
+				// NGT-PERP Natural Gas Token Perpetual
 				{
 					marketIndex: 8,
-					symbol: 'HG-PERP',
-					baseAssetSymbol: 'HG',
+					symbol: 'NGT-PERP',
+					baseAssetSymbol: 'NGT',
 					quoteAssetSymbol: 'USDC',
 					oracleSource: 'Pyth',
 					marketType: 'perp',
-					lastPrice: 3.847,
-					priceChange24h: 0.056,
-					volume24h: 423000,
-					openInterest: 1340000,
-					funding: 0.0001,
+					lastPrice: 2.876,
+					priceChange24h: -0.089,
+					volume24h: 678000,
+					openInterest: 1890000,
+					funding: -0.0002,
+					isActive: true,
+					tokenMint: COMMODITY_TOKENS.NGT?.mintAddress || '',
+					decimals: COMMODITY_TOKENS.NGT?.decimals || 9,
+					pythPriceId: COMMODITY_TOKENS.NGT?.pythPriceId || '',
+					marketAccount: {} as any,
+				},
+				// OIL-PERP Oil Perpetual
+				{
+					marketIndex: 9,
+					symbol: 'OIL-PERP',
+					baseAssetSymbol: 'OIL',
+					quoteAssetSymbol: 'USDC',
+					oracleSource: 'Pyth',
+					marketType: 'perp',
+					lastPrice: 78.92,
+					priceChange24h: 1.23,
+					volume24h: 1560000,
+					openInterest: 4890000,
+					funding: 0.0005,
+					isActive: true,
+					marketAccount: {} as any,
+				},
+				// GOLD-PERP Gold Perpetual
+				{
+					marketIndex: 10,
+					symbol: 'GOLD-PERP',
+					baseAssetSymbol: 'GOLD',
+					quoteAssetSymbol: 'USDC',
+					oracleSource: 'Pyth',
+					marketType: 'perp',
+					lastPrice: 2035.5,
+					priceChange24h: 12.75,
+					volume24h: 2340000,
+					openInterest: 8750000,
+					funding: 0.0003,
+					isActive: true,
+					marketAccount: {} as any,
+				},
+				// SILVER-PERP Silver Perpetual
+				{
+					marketIndex: 11,
+					symbol: 'SILVER-PERP',
+					baseAssetSymbol: 'SILVER',
+					quoteAssetSymbol: 'USDC',
+					oracleSource: 'Pyth',
+					marketType: 'perp',
+					lastPrice: 24.85,
+					priceChange24h: -0.42,
+					volume24h: 890000,
+					openInterest: 3200000,
+					funding: -0.0001,
+					isActive: true,
+					marketAccount: {} as any,
+				},
+				// WHEAT-PERP Wheat Perpetual
+				{
+					marketIndex: 12,
+					symbol: 'WHEAT-PERP',
+					baseAssetSymbol: 'WHEAT',
+					quoteAssetSymbol: 'USDC',
+					oracleSource: 'Pyth',
+					marketType: 'perp',
+					lastPrice: 6.45,
+					priceChange24h: 0.78,
+					volume24h: 345000,
+					openInterest: 1250000,
+					funding: 0.0004,
+					isActive: true,
+					marketAccount: {} as any,
+				},
+				// CORN-PERP Corn Perpetual
+				{
+					marketIndex: 13,
+					symbol: 'CORN-PERP',
+					baseAssetSymbol: 'CORN',
+					quoteAssetSymbol: 'USDC',
+					oracleSource: 'Pyth',
+					marketType: 'perp',
+					lastPrice: 4.32,
+					priceChange24h: -0.15,
+					volume24h: 287000,
+					openInterest: 980000,
+					funding: -0.0001,
+					isActive: true,
+					marketAccount: {} as any,
+				},
+				// CATTLE-PERP Live Cattle Perpetual
+				{
+					marketIndex: 14,
+					symbol: 'CATTLE-PERP',
+					baseAssetSymbol: 'CATTLE',
+					quoteAssetSymbol: 'USDC',
+					oracleSource: 'Pyth',
+					marketType: 'perp',
+					lastPrice: 1.78,
+					priceChange24h: 0.23,
+					volume24h: 156000,
+					openInterest: 567000,
+					funding: 0.0002,
+					isActive: true,
+					marketAccount: {} as any,
+				},
+				// HOGS-PERP Lean Hogs Perpetual
+				{
+					marketIndex: 15,
+					symbol: 'HOGS-PERP',
+					baseAssetSymbol: 'HOGS',
+					quoteAssetSymbol: 'USDC',
+					oracleSource: 'Pyth',
+					marketType: 'perp',
+					lastPrice: 0.89,
+					priceChange24h: -0.05,
+					volume24h: 98000,
+					openInterest: 234000,
+					funding: -0.0003,
 					isActive: true,
 					marketAccount: {} as any,
 				},
