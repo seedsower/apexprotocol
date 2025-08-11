@@ -1,0 +1,85 @@
+name: main
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+defaults:
+  run:
+    shell: bash
+    working-directory: .
+
+env:
+  NODE_VERSION: "18.x"
+  NEXT_TELEMETRY_DISABLED: 1
+
+jobs:
+  lint-and-type-check:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+      - name: Run ESLint
+        run: npm run lint
+      - name: Run Type Check
+        run: npm run type-check
+        
+  build:
+    name: Build Next.js App
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+      - name: Build application
+        run: npm run build
+      - name: Test build artifacts
+        run: ls -la .next/
+        
+  prettier:
+    name: Code Formatting Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+      - name: Run Prettier Check
+        run: npm run prettify
+    if: ${{ needs.check-for-program-version-changes.outputs.program == 'true' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install Solana Verify
+        run: |
+          cargo install --version 0.2.13 solana-verify
+          solana-verify --version
+
+      - name: Verifiable Build
+        run: |
+          solana-verify build --library-name drift --base-image ellipsislabs/solana:1.16.6
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: target/deploy/drift.so
