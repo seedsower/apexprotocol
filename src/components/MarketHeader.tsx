@@ -2,15 +2,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { UIMarketData } from '../types';
+import { CommodityMarketDropdown } from './CommodityMarketDropdown';
 
 interface MarketHeaderProps {
 	selectedMarket: UIMarketData | null;
-	_onMarketSelect?: (market: UIMarketData) => void;
+	markets: UIMarketData[];
+	onMarketSelect: (market: UIMarketData) => void;
 }
 
 export function MarketHeader({
 	selectedMarket,
-	_onMarketSelect,
+	markets,
+	onMarketSelect,
 }: MarketHeaderProps) {
 	const [currentPrice, setCurrentPrice] = useState<number>(0);
 	const [priceChange24h, setPriceChange24h] = useState<number>(0);
@@ -85,42 +88,12 @@ export function MarketHeader({
 				<div className="flex items-center justify-between py-4">
 					{/* Left Side - Market Info & Price */}
 					<div className="flex items-center space-x-6">
-						{/* Market Selector */}
-						<div className="flex items-center space-x-2">
-							<div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
-								<span className="text-white text-sm font-bold">
-									{selectedMarket.symbol === 'NGT'
-										? '⛽'
-										: selectedMarket.symbol.charAt(0)}
-								</span>
-							</div>
-							<div className="flex items-center space-x-1">
-								<span className="text-white text-lg font-semibold">
-									{selectedMarket.symbol}
-								</span>
-								<span className="text-gray-400 text-sm">
-									{selectedMarket.marketType === 'perp' ? '101x' : ''}
-								</span>
-								<span className="bg-green-600 text-white text-xs px-2 py-1 rounded">
-									{selectedMarket.marketType === 'perp' ? '0% fees' : 'Spot'}
-								</span>
-								<button className="text-gray-400 hover:text-white">
-									<svg
-										className="w-4 h-4"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											strokeWidth={2}
-											d="M19 9l-7 7-7-7"
-										/>
-									</svg>
-								</button>
-							</div>
-						</div>
+						{/* Commodity Market Dropdown */}
+						<CommodityMarketDropdown
+							selectedMarket={selectedMarket}
+							markets={markets}
+							onSelectMarket={onMarketSelect}
+						/>
 
 						{/* Live Price */}
 						<div className="flex items-center space-x-4">

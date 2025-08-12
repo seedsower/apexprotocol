@@ -125,51 +125,9 @@ export class DriftService extends EventEmitter implements IDriftService {
 		try {
 			console.log('DriftService: Fetching markets...');
 
-			// TODO: Fetch actual markets from DriftClient
-			// Fast loading - no artificial delays
-			const mockMarkets: UIMarketData[] = [
-				{
-					marketIndex: 0,
-					symbol: 'SOL-PERP',
-					baseAssetSymbol: 'SOL',
-					quoteAssetSymbol: 'USDC',
-					oracleSource: 'Pyth',
-					marketType: 'perp',
-					lastPrice: 98.5,
-					priceChange24h: 2.15,
-					volume24h: 1250000,
-					openInterest: 5500000,
-					funding: 0.0012,
-					isActive: true,
-					marketAccount: {} as any,
-				},
-				{
-					marketIndex: 1,
-					symbol: 'BTC-PERP',
-					baseAssetSymbol: 'BTC',
-					quoteAssetSymbol: 'USDC',
-					oracleSource: 'Pyth',
-					marketType: 'perp',
-					lastPrice: 43250.0,
-					priceChange24h: -1.85,
-					volume24h: 8750000,
-					openInterest: 15500000,
-					funding: -0.0008,
-					isActive: true,
-					marketAccount: {} as any,
-				},
-				{
-					marketIndex: 2,
-					symbol: 'USDC',
-					baseAssetSymbol: 'USDC',
-					oracleSource: 'Pyth',
-					marketType: 'spot',
-					lastPrice: 1.0,
-					priceChange24h: 0.01,
-					volume24h: 750000,
-					isActive: true,
-					marketAccount: {} as any,
-				},
+			// Apex Protocol - Commodity Markets Only
+			// Professional commodity derivatives trading platform
+			const commodityMarkets: UIMarketData[] = [
 				// NGT-USDC Spot Market for Natural Gas Token trading
 				{
 					marketIndex: 3,
@@ -318,6 +276,70 @@ export class DriftService extends EventEmitter implements IDriftService {
 					isActive: true,
 					marketAccount: {} as any,
 				},
+				// COPPER-PERP Copper Perpetual
+				{
+					marketIndex: 24,
+					symbol: 'COPPER-PERP',
+					baseAssetSymbol: 'COPPER',
+					quoteAssetSymbol: 'USDC',
+					oracleSource: 'Pyth',
+					marketType: 'perp',
+					lastPrice: 4.12,
+					priceChange24h: 0.08,
+					volume24h: 1250000,
+					openInterest: 3890000,
+					funding: 0.0002,
+					isActive: true,
+					marketAccount: {} as any,
+				},
+				// ALUMINUM-PERP Aluminum Perpetual
+				{
+					marketIndex: 25,
+					symbol: 'ALUMINUM-PERP',
+					baseAssetSymbol: 'ALUMINUM',
+					quoteAssetSymbol: 'USDC',
+					oracleSource: 'Pyth',
+					marketType: 'perp',
+					lastPrice: 2.34,
+					priceChange24h: -0.05,
+					volume24h: 675000,
+					openInterest: 1890000,
+					funding: -0.0001,
+					isActive: true,
+					marketAccount: {} as any,
+				},
+				// PLATINUM-PERP Platinum Perpetual
+				{
+					marketIndex: 26,
+					symbol: 'PLATINUM-PERP',
+					baseAssetSymbol: 'PLATINUM',
+					quoteAssetSymbol: 'USDC',
+					oracleSource: 'Pyth',
+					marketType: 'perp',
+					lastPrice: 1045.5,
+					priceChange24h: 8.75,
+					volume24h: 890000,
+					openInterest: 2340000,
+					funding: 0.0003,
+					isActive: true,
+					marketAccount: {} as any,
+				},
+				// PALLADIUM-PERP Palladium Perpetual
+				{
+					marketIndex: 27,
+					symbol: 'PALLADIUM-PERP',
+					baseAssetSymbol: 'PALLADIUM',
+					quoteAssetSymbol: 'USDC',
+					oracleSource: 'Pyth',
+					marketType: 'perp',
+					lastPrice: 1567.25,
+					priceChange24h: -12.5,
+					volume24h: 456000,
+					openInterest: 1234000,
+					funding: -0.0002,
+					isActive: true,
+					marketAccount: {} as any,
+				},
 				// WHEAT-PERP Wheat Perpetual
 				{
 					marketIndex: 12,
@@ -382,12 +404,144 @@ export class DriftService extends EventEmitter implements IDriftService {
 					isActive: true,
 					marketAccount: {} as any,
 				},
+
+				// === SOFTS (Soft Commodities) ===
+				// COFFEE-PERP Coffee Perpetual
+				{
+					marketIndex: 16,
+					symbol: 'COFFEE-PERP',
+					baseAssetSymbol: 'COFFEE',
+					quoteAssetSymbol: 'USDC',
+					oracleSource: 'Pyth',
+					marketType: 'perp',
+					lastPrice: 1.85,
+					priceChange24h: 0.12,
+					volume24h: 425000,
+					openInterest: 1560000,
+					funding: 0.0002,
+					isActive: true,
+					marketAccount: {} as any,
+				},
+				// SUGAR-PERP Sugar Perpetual
+				{
+					marketIndex: 17,
+					symbol: 'SUGAR-PERP',
+					baseAssetSymbol: 'SUGAR',
+					quoteAssetSymbol: 'USDC',
+					oracleSource: 'Pyth',
+					marketType: 'perp',
+					lastPrice: 0.22,
+					priceChange24h: -0.008,
+					volume24h: 312000,
+					openInterest: 890000,
+					funding: -0.0001,
+					isActive: true,
+					marketAccount: {} as any,
+				},
+				// COCOA-PERP Cocoa Perpetual
+				{
+					marketIndex: 18,
+					symbol: 'COCOA-PERP',
+					baseAssetSymbol: 'COCOA',
+					quoteAssetSymbol: 'USDC',
+					oracleSource: 'Pyth',
+					marketType: 'perp',
+					lastPrice: 3.45,
+					priceChange24h: 0.23,
+					volume24h: 189000,
+					openInterest: 675000,
+					funding: 0.0003,
+					isActive: true,
+					marketAccount: {} as any,
+				},
+				// COTTON-PERP Cotton Perpetual
+				{
+					marketIndex: 19,
+					symbol: 'COTTON-PERP',
+					baseAssetSymbol: 'COTTON',
+					quoteAssetSymbol: 'USDC',
+					oracleSource: 'Pyth',
+					marketType: 'perp',
+					lastPrice: 0.78,
+					priceChange24h: -0.02,
+					volume24h: 156000,
+					openInterest: 445000,
+					funding: -0.0002,
+					isActive: true,
+					marketAccount: {} as any,
+				},
+				// ORANGE-PERP Orange Juice Perpetual
+				{
+					marketIndex: 20,
+					symbol: 'ORANGE-PERP',
+					baseAssetSymbol: 'ORANGE',
+					quoteAssetSymbol: 'USDC',
+					oracleSource: 'Pyth',
+					marketType: 'perp',
+					lastPrice: 1.56,
+					priceChange24h: 0.08,
+					volume24h: 87000,
+					openInterest: 234000,
+					funding: 0.0001,
+					isActive: true,
+					marketAccount: {} as any,
+				},
+
+				// === INDICES (Commodity Indices) ===
+				// DJP-PERP DJ Commodity Index Perpetual
+				{
+					marketIndex: 21,
+					symbol: 'DJP-PERP',
+					baseAssetSymbol: 'DJP',
+					quoteAssetSymbol: 'USDC',
+					oracleSource: 'Pyth',
+					marketType: 'perp',
+					lastPrice: 28.45,
+					priceChange24h: 0.67,
+					volume24h: 1250000,
+					openInterest: 4560000,
+					funding: 0.0004,
+					isActive: true,
+					marketAccount: {} as any,
+				},
+				// GSG-PERP Goldman Sachs Commodity Index Perpetual
+				{
+					marketIndex: 22,
+					symbol: 'GSG-PERP',
+					baseAssetSymbol: 'GSG',
+					quoteAssetSymbol: 'USDC',
+					oracleSource: 'Pyth',
+					marketType: 'perp',
+					lastPrice: 15.23,
+					priceChange24h: 0.34,
+					volume24h: 890000,
+					openInterest: 3200000,
+					funding: 0.0002,
+					isActive: true,
+					marketAccount: {} as any,
+				},
+				// CRB-PERP CRB Commodity Index Perpetual
+				{
+					marketIndex: 23,
+					symbol: 'CRB-PERP',
+					baseAssetSymbol: 'CRB',
+					quoteAssetSymbol: 'USDC',
+					oracleSource: 'Pyth',
+					marketType: 'perp',
+					lastPrice: 312.78,
+					priceChange24h: 2.45,
+					volume24h: 675000,
+					openInterest: 2890000,
+					funding: 0.0003,
+					isActive: true,
+					marketAccount: {} as any,
+				},
 			];
 
-			this.state.markets = mockMarkets;
-			this.setState({ markets: mockMarkets });
+			this.state.markets = commodityMarkets;
+			this.setState({ markets: commodityMarkets });
 
-			return mockMarkets;
+			return commodityMarkets;
 		} catch (error: any) {
 			console.error('Error fetching markets:', error);
 			this.setState({ error: error.message || 'Failed to fetch markets' });

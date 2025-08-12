@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export', // Enabled for production deployment
+  // output: 'export', // Temporarily disabled to fix Solana module build error
   trailingSlash: false,
   skipTrailingSlashRedirect: true,
   images: {

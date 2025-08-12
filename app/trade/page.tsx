@@ -5,7 +5,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { useDrift } from '../../src/providers/DriftProvider';
 import { TopNavigation } from '../../src/components/TopNavigation';
 import { MarketHeader } from '../../src/components/MarketHeader';
-import { MarketSelector } from '../../src/components/MarketSelector';
+
 import { AdvancedChart } from '../../src/components/AdvancedChart';
 import { OrderBook } from '../../src/components/OrderBook';
 import { EnhancedOrderForm } from '../../src/components/EnhancedOrderForm';
@@ -46,11 +46,31 @@ function TradePageContent() {
 	const [selectedMarket, setSelectedMarket] = useState<UIMarketData | null>(
 		null
 	);
+	const [markets, setMarkets] = useState<UIMarketData[]>([]);
 	const [positions] = useState<any[]>([]);
 	const [orderBookPrice, setOrderBookPrice] = useState<number | undefined>(
 		undefined
 	);
 	const [activeBottomTab, setActiveBottomTab] = useState<string>('positions');
+
+	// Fetch commodity markets
+	useEffect(() => {
+		if (isReady && driftService) {
+			driftService
+				.fetchMarkets()
+				.then((fetchedMarkets) => {
+					setMarkets(fetchedMarkets);
+					// Auto-select NGT-USDC as default market
+					if (!selectedMarket && fetchedMarkets.length > 0) {
+						const ngtMarket = fetchedMarkets.find(
+							(m) => m.symbol === 'NGT-USDC'
+						);
+						setSelectedMarket(ngtMarket || fetchedMarkets[0]);
+					}
+				})
+				.catch(console.error);
+		}
+	}, [isReady, driftService, selectedMarket]);
 
 	// Check if user account exists
 	useEffect(() => {
@@ -99,23 +119,16 @@ function TradePageContent() {
 			{/* Market Header */}
 			<MarketHeader
 				selectedMarket={selectedMarket}
-				_onMarketSelect={handleMarketSelect}
+				markets={markets}
+				onMarketSelect={handleMarketSelect}
 			/>
 
 			{/* Main Trading Interface - Drift-style Grid Layout */}
 			<div className="flex-1 flex flex-col overflow-hidden">
 				{/* Trading Grid */}
-				<div className="flex-1 grid grid-cols-12 gap-1 p-1 bg-gray-800">
-					{/* Left Sidebar - Market Selection (hidden on mobile) */}
-					<div className="hidden lg:block lg:col-span-2 bg-gray-900 rounded">
-						<div className="p-4">
-							<h3 className="text-white text-sm font-medium mb-3">Markets</h3>
-							<MarketSelector onSelectMarket={handleMarketSelect} />
-						</div>
-					</div>
-
+				<div className="grid grid-cols-12 gap-4 flex-1">
 					{/* Main Chart Area */}
-					<div className="col-span-12 lg:col-span-7 bg-gray-900 rounded">
+					<div className="col-span-12 lg:col-span-9 bg-gray-900 rounded">
 						<div className="h-full">
 							<AdvancedChart selectedMarket={selectedMarket} />
 						</div>
