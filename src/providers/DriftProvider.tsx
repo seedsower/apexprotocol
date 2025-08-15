@@ -61,9 +61,19 @@ const DriftProviderContent: React.FC<DriftProviderProps> = ({ children }) => {
 
 	// Initialize DriftService when wallet connects
 	useEffect(() => {
+<<<<<<< Updated upstream
 		if (connected && publicKey && wallet) {
 			const initService = async () => {
 				try {
+=======
+		let isMounted = true;
+
+		if (connected && publicKey && wallet) {
+			const initService = async () => {
+				try {
+					if (!isMounted) return;
+
+>>>>>>> Stashed changes
 					setState((prev) => ({ ...prev, loading: true, error: null }));
 
 					const newService = new DriftService(config);
@@ -72,8 +82,54 @@ const DriftProviderContent: React.FC<DriftProviderProps> = ({ children }) => {
 						adapter: wallet.adapter,
 					};
 
+<<<<<<< Updated upstream
 					await newService.initialize(walletInterface);
 					const markets = await newService.fetchMarkets();
+=======
+					// Add wallet error handling
+					if (wallet.adapter) {
+						const handleWalletError = (error: any) => {
+							console.warn(
+								'DriftProvider: Wallet error handled gracefully:',
+								error.message || error
+							);
+							// Don't crash the app on wallet errors - just log them
+						};
+
+						const handleWalletDisconnect = () => {
+							console.log('DriftProvider: Wallet disconnected gracefully');
+							if (isMounted) {
+								setDriftService(null);
+								setState({
+									initialized: false,
+									connected: false,
+									user: null,
+									markets: [],
+									positions: [],
+									loading: false,
+									error: null,
+								});
+							}
+						};
+
+						// Add error listeners with try-catch to prevent crashes
+						try {
+							wallet.adapter.on('error', handleWalletError);
+							wallet.adapter.on('disconnect', handleWalletDisconnect);
+						} catch (listenerError) {
+							console.warn(
+								'DriftProvider: Could not add wallet listeners:',
+								listenerError
+							);
+						}
+					}
+
+					await newService.initialize(walletInterface);
+					const markets = await newService.fetchMarkets();
+
+					if (!isMounted) return;
+
+>>>>>>> Stashed changes
 					console.log(
 						`DriftProvider: Drift service initialized successfully with ${markets.length} markets`
 					);
@@ -86,7 +142,13 @@ const DriftProviderContent: React.FC<DriftProviderProps> = ({ children }) => {
 						connected: true,
 					}));
 
+<<<<<<< Updated upstream
 					console.log('DriftProvider: Using Drift service');
+=======
+					console.log(
+						'DriftProvider: Using Drift service with robust error handling'
+					);
+>>>>>>> Stashed changes
 				} catch (error: any) {
 					console.error('DriftProvider: Service initialization failed:', error);
 					setState((prev) => ({
@@ -99,10 +161,33 @@ const DriftProviderContent: React.FC<DriftProviderProps> = ({ children }) => {
 
 			initService();
 		} else {
+<<<<<<< Updated upstream
 			// Clean up when wallet disconnects
 			if (driftService) {
 				driftService.disconnect();
 				setDriftService(null);
+=======
+			// Clean up when wallet disconnects with error handling
+			try {
+				if (driftService) {
+					driftService.disconnect();
+					setDriftService(null);
+				}
+			} catch (cleanupError) {
+				console.warn('DriftProvider: Cleanup error handled:', cleanupError);
+			}
+
+			if (isMounted) {
+				setState({
+					initialized: false,
+					connected: false,
+					user: null,
+					markets: [],
+					positions: [],
+					loading: false,
+					error: null,
+				});
+>>>>>>> Stashed changes
 			}
 			setState({
 				initialized: false,
@@ -114,6 +199,22 @@ const DriftProviderContent: React.FC<DriftProviderProps> = ({ children }) => {
 				error: null,
 			});
 		}
+<<<<<<< Updated upstream
+=======
+
+		return () => {
+			isMounted = false;
+			// Clean up wallet listeners on unmount
+			if (wallet?.adapter) {
+				try {
+					wallet.adapter.removeAllListeners('error');
+					wallet.adapter.removeAllListeners('disconnect');
+				} catch (cleanupError) {
+					console.warn('DriftProvider: Listener cleanup error:', cleanupError);
+				}
+			}
+		};
+>>>>>>> Stashed changes
 	}, [connected, publicKey, wallet]);
 
 	// Listen for state changes from DriftService

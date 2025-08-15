@@ -9,8 +9,8 @@ import { MarketHeader } from '../../src/components/MarketHeader';
 import { AdvancedChart } from '../../src/components/AdvancedChart';
 import { OrderBook } from '../../src/components/OrderBook';
 import { EnhancedOrderForm } from '../../src/components/EnhancedOrderForm';
-import { TokenBalances } from '../../src/components/TokenBalances';
-import { PositionsTable } from '../../src/components/PositionsTable';
+// import TokenBalances from '@/components/TokenBalances';
+// import PositionsTable from '@/components/PositionsTable';
 
 import { OrderFormData, UIMarketData } from '../../src/types';
 
@@ -39,7 +39,19 @@ export default function TradePage() {
 function TradePageContent() {
 	// Safely use wallet hooks only after mounting
 	const { connected, publicKey } = useWallet();
+<<<<<<< Updated upstream
 	const { driftService, isReady, createUser } = useDrift();
+=======
+	const {
+		apexService,
+		user,
+		spotMarkets,
+		isInitialized,
+		isProtocolInitialized: _isProtocolInitialized,
+		deposit: apexDeposit,
+		refreshUserData,
+	} = useProductionApex();
+>>>>>>> Stashed changes
 
 	const [userExists, setUserExists] = useState<boolean>(false);
 	const [isCreatingUser, setIsCreatingUser] = useState<boolean>(false);
@@ -47,7 +59,7 @@ function TradePageContent() {
 		null
 	);
 	const [markets, setMarkets] = useState<UIMarketData[]>([]);
-	const [positions] = useState<any[]>([]);
+	const [_positions] = useState<any[]>([]);
 	const [orderBookPrice, setOrderBookPrice] = useState<number | undefined>(
 		undefined
 	);
@@ -55,6 +67,7 @@ function TradePageContent() {
 
 	// Fetch commodity markets
 	useEffect(() => {
+<<<<<<< Updated upstream
 		if (isReady && driftService) {
 			driftService
 				.fetchMarkets()
@@ -71,6 +84,47 @@ function TradePageContent() {
 				.catch(console.error);
 		}
 	}, [isReady, driftService, selectedMarket]);
+=======
+		const _fetchMarkets = async () => {
+			try {
+				// Convert Apex spot markets to UI format
+				const fetchedMarkets: UIMarketData[] = spotMarkets.map(
+					(market, _index) => ({
+						marketIndex: market.marketIndex,
+						symbol: `${market.name}-USDC`,
+						baseAssetSymbol: market.name,
+						quoteAssetSymbol: 'USDC',
+						oracleSource: 'Pyth',
+						marketType: 'spot' as const,
+						lastPrice: 0,
+						priceChange24h: 0,
+						volume24h: 0,
+						isActive: true,
+						marketAccount: market,
+					})
+				);
+
+				setMarkets(fetchedMarkets);
+
+				// Auto-select NGT-USDC as default market
+				if (!selectedMarket && fetchedMarkets.length > 0) {
+					const ngtMarket = fetchedMarkets.find(
+						(m: UIMarketData) => m.symbol === 'NGT-USDC'
+					);
+					setSelectedMarket(ngtMarket || fetchedMarkets[0]);
+					console.log(
+						'Trade Page: Auto-selected market:',
+						ngtMarket?.symbol || fetchedMarkets[0]?.symbol
+					);
+				}
+			} catch (error) {
+				console.error('Trade Page: Error fetching markets:', error);
+			}
+		};
+
+		_fetchMarkets();
+	}, [spotMarkets, selectedMarket]);
+>>>>>>> Stashed changes
 
 	// Check if user account exists
 	useEffect(() => {
@@ -80,13 +134,59 @@ function TradePageContent() {
 		}
 	}, [isReady, driftService, connected]);
 
+<<<<<<< Updated upstream
 	const handleCreateUser = async () => {
 		if (!driftService || !publicKey) return;
+=======
+	const handleDeposit = async () => {
+		if (!connected || !publicKey) {
+			alert('Please connect your wallet first');
+			return;
+		}
+
+		setShowDepositModal(true);
+	};
+>>>>>>> Stashed changes
 
 		setIsCreatingUser(true);
 		try {
+<<<<<<< Updated upstream
 			await createUser();
 			setUserExists(true);
+=======
+			// Use Apex Protocol deposit function
+			console.log('Depositing to Apex Protocol:', {
+				amount,
+				tokenSymbol,
+				user: publicKey.toString(),
+			});
+
+			// Map token symbols to mint addresses
+			const TOKEN_MINTS: { [key: string]: string } = {
+				USDC: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', // USDC mainnet
+				USDT: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB', // USDT mainnet
+				// Add more tokens as needed
+			};
+
+			// Get the mint address for the token symbol
+			const mintAddress = TOKEN_MINTS[tokenSymbol];
+			if (!mintAddress) {
+				throw new Error(`Unsupported token: ${tokenSymbol}`);
+			}
+
+			// Find the market index for the token
+			const marketIndex = 0; // Default to USDC market for now
+			const mintPubkey = new PublicKey(mintAddress);
+
+			const txId = await apexDeposit(marketIndex, amount, mintPubkey);
+			console.log('Deposit successful:', txId);
+
+			// Refresh user data to show updated balances
+			await refreshUserData();
+
+			alert(`Deposit successful! Transaction: ${txId}`);
+			setShowDepositModal(false);
+>>>>>>> Stashed changes
 		} catch (error: any) {
 			console.error('Failed to create user:', error);
 		} finally {
@@ -101,8 +201,25 @@ function TradePageContent() {
 	const handlePlaceOrder = async (orderData: OrderFormData) => {
 		if (!driftService || !publicKey) return;
 
+<<<<<<< Updated upstream
 		console.log('Placing order:', orderData);
 		// TODO: Implement order placement
+=======
+		try {
+			console.log('Trade Page: Placing order on Apex Protocol...', orderData);
+
+			// For now, show demo message until order placement is implemented
+			console.log('Trade Page: Demo mode - Order would be placed:', orderData);
+			alert(
+				`Demo: ${orderData.side} order for ${orderData.amount} ${selectedMarket?.symbol} would be placed on Apex Protocol`
+			);
+		} catch (error: any) {
+			console.error('Trade Page: Order placement failed:', error);
+
+			// Show error message to user
+			alert(`Order failed: ${error.message || 'Unknown error'}`);
+		}
+>>>>>>> Stashed changes
 	};
 
 	// ✅ PROFESSIONAL TRADING INTERFACE - Drift-style layout
@@ -130,7 +247,15 @@ function TradePageContent() {
 					{/* Main Chart Area */}
 					<div className="col-span-12 lg:col-span-9 bg-gray-900 rounded">
 						<div className="h-full">
+<<<<<<< Updated upstream
 							<AdvancedChart selectedMarket={selectedMarket} />
+=======
+							<TradingViewWidget
+								selectedMarket={selectedMarket}
+								height={500}
+								theme="dark"
+							/>
+>>>>>>> Stashed changes
 						</div>
 					</div>
 
@@ -251,6 +376,7 @@ function TradePageContent() {
 						</div>
 
 						{/* Tab Content */}
+<<<<<<< Updated upstream
 						<div className="p-6">
 							{activeBottomTab === 'positions' && (
 								<PositionsTable positions={positions} />
@@ -285,10 +411,76 @@ function TradePageContent() {
 									<p>Account information</p>
 								</div>
 							)}
+=======
+						<div className="">
+							{activeBottomTab === 'positions' && <PositionsTab />}
+							{activeBottomTab === 'orders' && <OrdersTab />}
+							{activeBottomTab === 'trades' && <HistoryTab />}
+							{activeBottomTab === 'balances' && <BalanceTab />}
+							{activeBottomTab === 'orderHistory' && <HistoryTab />}
+							{activeBottomTab === 'positionHistory' && <PositionsTab />}
+							{activeBottomTab === 'account' && <BalanceTab />}
+>>>>>>> Stashed changes
 						</div>
 					</div>
 				</div>
 			</div>
+<<<<<<< Updated upstream
+=======
+
+			{/* Deposit Modal */}
+			{showDepositModal && (
+				<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+					<div className="bg-gray-800 rounded-lg p-6 w-96 max-w-md">
+						<h3 className="text-xl font-semibold text-white mb-4">
+							Deposit Funds
+						</h3>
+						<div className="space-y-4">
+							<div>
+								<label className="block text-sm font-medium text-gray-300 mb-2">
+									Amount (USDC)
+								</label>
+								<input
+									type="number"
+									placeholder="Enter amount"
+									className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+									id="deposit-amount"
+								/>
+							</div>
+							<div className="flex space-x-3">
+								<button
+									onClick={() => {
+										const amountInput = document.getElementById(
+											'deposit-amount'
+										) as HTMLInputElement;
+										const amount = parseFloat(amountInput?.value || '0');
+										if (amount > 0) {
+											handleDepositSubmit(amount, 'USDC');
+										} else {
+											alert('Please enter a valid amount');
+										}
+									}}
+									disabled={isDepositing}
+									className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
+										isDepositing
+											? 'bg-gray-600 text-gray-300 cursor-not-allowed'
+											: 'bg-green-600 hover:bg-green-700 text-white'
+									}`}
+								>
+									{isDepositing ? 'Depositing...' : 'Deposit'}
+								</button>
+								<button
+									onClick={() => setShowDepositModal(false)}
+									className="flex-1 py-2 px-4 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors"
+								>
+									Cancel
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			)}
+>>>>>>> Stashed changes
 		</div>
 	);
 }

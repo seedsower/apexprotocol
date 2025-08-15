@@ -13,6 +13,7 @@ export interface UsePositionsResult {
 }
 
 export const usePositions = (): UsePositionsResult => {
+<<<<<<< Updated upstream
 	const { driftService, state, isReady } = useDrift();
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -20,6 +21,35 @@ export const usePositions = (): UsePositionsResult => {
 	// Fetch positions
 	const refetch = useCallback(() => {
 		if (!driftService || !isReady) return;
+=======
+	const { user, _isInitialized } = useProductionApex();
+	const [loading] = useState(false);
+	const [error] = useState<string | null>(null);
+
+	// Convert Apex positions to UI format
+	const positions = useMemo(() => {
+		if (!user?.positions) return [];
+
+		return user.positions.map((position) => ({
+			marketIndex: position.marketIndex,
+			symbol: position.symbol || `Market-${position.marketIndex}`,
+			side: (position.size > 0
+				? 'long'
+				: position.size < 0
+				? 'short'
+				: 'none') as 'long' | 'short' | 'none',
+			size: Math.abs(position.size),
+			notionalValue: position.notionalValue || 0,
+			entryPrice: position.entryPrice || 0,
+			markPrice: position.markPrice || 0,
+			unrealizedPnl: position.unrealizedPnl || 0,
+			unrealizedPnlPercent: position.unrealizedPnlPercent || 0,
+			marketType: 'spot' as const,
+			liquidationPrice: position.liquidationPrice,
+			position: position,
+		}));
+	}, [user?.positions]);
+>>>>>>> Stashed changes
 
 		try {
 			setLoading(true);
@@ -28,6 +58,7 @@ export const usePositions = (): UsePositionsResult => {
 			// Get positions from DriftService state
 			const _positions = state.positions;
 
+<<<<<<< Updated upstream
 			setLoading(false);
 		} catch (err) {
 			setError(
@@ -43,11 +74,28 @@ export const usePositions = (): UsePositionsResult => {
 			refetch();
 		}
 	}, [isReady, refetch]);
+=======
+	// Compute position analytics
+	const totalUnrealizedPnl = useMemo(() => {
+		return positions.reduce(
+			(total, position) => total + position.unrealizedPnl,
+			0
+		);
+	}, [positions]);
+
+	const totalNotionalValue = useMemo(() => {
+		return positions.reduce(
+			(total, position) => total + position.notionalValue,
+			0
+		);
+	}, [positions]);
+>>>>>>> Stashed changes
 
 	// Listen for user account changes and position updates
 	useEffect(() => {
 		if (!driftService || !isReady) return;
 
+<<<<<<< Updated upstream
 		const handleUserUpdate = () => {
 			console.log('usePositions: User update detected, refetching...');
 			refetch();
@@ -100,6 +148,19 @@ export const usePositions = (): UsePositionsResult => {
 		},
 		[state.positions]
 	);
+=======
+	const longPositionsCount = useMemo(() => {
+		return positions.filter(
+			(position) => position.side === 'long' && position.size > 0
+		).length;
+	}, [positions]);
+
+	const shortPositionsCount = useMemo(() => {
+		return positions.filter(
+			(position) => position.side === 'short' && position.size > 0
+		).length;
+	}, [positions]);
+>>>>>>> Stashed changes
 
 	return {
 		positions: state.positions,

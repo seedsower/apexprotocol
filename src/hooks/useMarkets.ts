@@ -14,9 +14,15 @@ export interface UseMarketsResult {
 }
 
 export const useMarkets = (): UseMarketsResult => {
+<<<<<<< Updated upstream
 	const { driftService, state } = useDrift();
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+=======
+	const { spotMarkets, _isInitialized } = useProductionApex();
+	const [loading] = useState(false);
+	const [error] = useState<string | null>(null);
+>>>>>>> Stashed changes
 
 	// Market selector state
 	const [selectorState, setSelectorState] = useState<MarketSelectorState>({
@@ -27,9 +33,28 @@ export const useMarkets = (): UseMarketsResult => {
 		sortDirection: 'asc',
 	});
 
+<<<<<<< Updated upstream
 	// Fetch markets data
 	const refetch = async () => {
 		if (!driftService) return;
+=======
+	// Convert Apex spot markets to UI format
+	const markets = useMemo(() => {
+		return spotMarkets.map((market) => ({
+			marketIndex: market.marketIndex,
+			symbol: `${market.name}-USDC`,
+			baseAssetSymbol: market.name,
+			quoteAssetSymbol: 'USDC',
+			oracleSource: 'Pyth',
+			marketType: 'spot' as const,
+			lastPrice: 0,
+			priceChange24h: 0,
+			volume24h: 0,
+			isActive: true,
+			marketAccount: market,
+		}));
+	}, [spotMarkets]);
+>>>>>>> Stashed changes
 
 		try {
 			setLoading(true);

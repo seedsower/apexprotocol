@@ -11,10 +11,14 @@ interface TopNavigationProps {
 	isCreatingAccount?: boolean;
 }
 
+<<<<<<< Updated upstream
 export function TopNavigation({
 	onCreateAccount,
 	isCreatingAccount,
 }: TopNavigationProps) {
+=======
+export function TopNavigation({ onDeposit, isDepositing }: TopNavigationProps) {
+>>>>>>> Stashed changes
 	const { connected, publicKey } = useWallet();
 	const { isReady } = useDrift();
 

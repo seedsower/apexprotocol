@@ -29,7 +29,11 @@ export default function RootLayout({
 					}
 				>
 					<WalletProviders>
+<<<<<<< Updated upstream
 						<DriftProvider>{children}</DriftProvider>
+=======
+						<ProductionApexProvider>{children}</ProductionApexProvider>
+>>>>>>> Stashed changes
 					</WalletProviders>
 				</Suspense>
 			</body>
