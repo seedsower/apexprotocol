@@ -2,485 +2,597 @@
 
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { useDrift } from '../../src/providers/DriftProvider';
-import { TopNavigation } from '../../src/components/TopNavigation';
-import { MarketHeader } from '../../src/components/MarketHeader';
+import WalletButton from '../../components/WalletButton';
 
-import { AdvancedChart } from '../../src/components/AdvancedChart';
-import { OrderBook } from '../../src/components/OrderBook';
-import { EnhancedOrderForm } from '../../src/components/EnhancedOrderForm';
-// import TokenBalances from '@/components/TokenBalances';
-// import PositionsTable from '@/components/PositionsTable';
-
-import { OrderFormData, UIMarketData } from '../../src/types';
-
-export default function TradePage() {
-	const [mounted, setMounted] = useState(false);
-
-	useEffect(() => {
-		setMounted(true);
-	}, []);
-
-	// Don't render until mounted (SSR safety)
-	if (!mounted) {
-		return (
-			<div className="min-h-screen bg-gray-50 flex items-center justify-center">
-				<div className="text-center">
-					<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-					<p className="text-gray-600 mt-4">Loading...</p>
-				</div>
-			</div>
-		);
-	}
-
-	return <TradePageContent />;
+interface Market {
+	symbol: string;
+	name: string;
+	price: number;
+	change24h: number;
+	volume24h: number;
+	marketCap: number;
+	high24h: number;
+	low24h: number;
+	fundingRate: number;
+	openInterest: number;
+	indexPrice: number;
+	markPrice: number;
 }
 
-function TradePageContent() {
-	// Safely use wallet hooks only after mounting
-	const { connected, publicKey } = useWallet();
-<<<<<<< Updated upstream
-	const { driftService, isReady, createUser } = useDrift();
-=======
-	const {
-		apexService,
-		user,
-		spotMarkets,
-		isInitialized,
-		isProtocolInitialized: _isProtocolInitialized,
-		deposit: apexDeposit,
-		refreshUserData,
-	} = useProductionApex();
->>>>>>> Stashed changes
+interface UserData {
+	wallet: string;
+	totalCollateral: number;
+	availableBalance: number;
+	positions: any[];
+	orders: any[];
+	balances: Record<string, number>;
+}
 
-	const [userExists, setUserExists] = useState<boolean>(false);
-	const [isCreatingUser, setIsCreatingUser] = useState<boolean>(false);
-	const [selectedMarket, setSelectedMarket] = useState<UIMarketData | null>(
-		null
-	);
-	const [markets, setMarkets] = useState<UIMarketData[]>([]);
-	const [_positions] = useState<any[]>([]);
-	const [orderBookPrice, setOrderBookPrice] = useState<number | undefined>(
-		undefined
-	);
-	const [activeBottomTab, setActiveBottomTab] = useState<string>('positions');
+export default function ApexTradePage() {
+	const { publicKey, connected } = useWallet();
+	const [markets, setMarkets] = useState<Market[]>([]);
+	const [selectedMarket, setSelectedMarket] = useState<Market | null>(null);
+	const [userData, setUserData] = useState<UserData | null>(null);
+	const [activeTab, setActiveTab] = useState('Positions');
+	const [orderSide, setOrderSide] = useState<'buy' | 'sell'>('buy');
+	const [orderAmount, setOrderAmount] = useState('');
+	const [orderPrice, setOrderPrice] = useState('');
+	const [leverage, setLeverage] = useState(1);
+	const [loading, setLoading] = useState(false);
 
-	// Fetch commodity markets
+	// Fetch markets data
 	useEffect(() => {
-<<<<<<< Updated upstream
-		if (isReady && driftService) {
-			driftService
-				.fetchMarkets()
-				.then((fetchedMarkets) => {
-					setMarkets(fetchedMarkets);
-					// Auto-select NGT-USDC as default market
-					if (!selectedMarket && fetchedMarkets.length > 0) {
-						const ngtMarket = fetchedMarkets.find(
-							(m) => m.symbol === 'NGT-USDC'
-						);
-						setSelectedMarket(ngtMarket || fetchedMarkets[0]);
-					}
-				})
-				.catch(console.error);
-		}
-	}, [isReady, driftService, selectedMarket]);
-=======
-		const _fetchMarkets = async () => {
+		const fetchMarkets = async () => {
 			try {
-				// Convert Apex spot markets to UI format
-				const fetchedMarkets: UIMarketData[] = spotMarkets.map(
-					(market, _index) => ({
-						marketIndex: market.marketIndex,
-						symbol: `${market.name}-USDC`,
-						baseAssetSymbol: market.name,
-						quoteAssetSymbol: 'USDC',
-						oracleSource: 'Pyth',
-						marketType: 'spot' as const,
-						lastPrice: 0,
-						priceChange24h: 0,
-						volume24h: 0,
-						isActive: true,
-						marketAccount: market,
-					})
-				);
-
-				setMarkets(fetchedMarkets);
-
-				// Auto-select NGT-USDC as default market
-				if (!selectedMarket && fetchedMarkets.length > 0) {
-					const ngtMarket = fetchedMarkets.find(
-						(m: UIMarketData) => m.symbol === 'NGT-USDC'
-					);
-					setSelectedMarket(ngtMarket || fetchedMarkets[0]);
-					console.log(
-						'Trade Page: Auto-selected market:',
-						ngtMarket?.symbol || fetchedMarkets[0]?.symbol
-					);
+				const response = await fetch('http://localhost:8080/api/markets');
+				const data = await response.json();
+				setMarkets(data.markets || []);
+				if (data.markets && data.markets.length > 0) {
+					setSelectedMarket(data.markets[0]);
 				}
 			} catch (error) {
-				console.error('Trade Page: Error fetching markets:', error);
+				console.error('Failed to fetch markets:', error);
+			}
+		};
+		fetchMarkets();
+	}, []);
+
+	// Fetch user data when wallet connected
+	useEffect(() => {
+		if (connected && publicKey) {
+			const fetchUserData = async () => {
+				try {
+					const response = await fetch(
+						`http://localhost:8080/api/user/${publicKey.toString()}`
+					);
+					const data = await response.json();
+					setUserData(data);
+				} catch (error) {
+					console.error('Failed to fetch user data:', error);
+				}
+			};
+			fetchUserData();
+		}
+	}, [connected, publicKey]);
+
+	// WebSocket for real-time updates
+	useEffect(() => {
+		const ws = new WebSocket('ws://localhost:8081');
+
+		ws.onmessage = (event) => {
+			const data = JSON.parse(event.data);
+			if (data.type === 'price_update') {
+				setMarkets(Object.values(data.data));
+				if (selectedMarket) {
+					const updatedMarket = data.data[selectedMarket.symbol];
+					if (updatedMarket) {
+						setSelectedMarket(updatedMarket);
+					}
+				}
 			}
 		};
 
-		_fetchMarkets();
-	}, [spotMarkets, selectedMarket]);
->>>>>>> Stashed changes
+		return () => ws.close();
+	}, [selectedMarket]);
 
-	// Check if user account exists
-	useEffect(() => {
-		if (isReady && driftService && connected) {
-			// For demo purposes, assume user needs to be created
-			setUserExists(false);
-		}
-	}, [isReady, driftService, connected]);
-
-<<<<<<< Updated upstream
-	const handleCreateUser = async () => {
-		if (!driftService || !publicKey) return;
-=======
 	const handleDeposit = async () => {
 		if (!connected || !publicKey) {
 			alert('Please connect your wallet first');
 			return;
 		}
 
-		setShowDepositModal(true);
-	};
->>>>>>> Stashed changes
-
-		setIsCreatingUser(true);
+		setLoading(true);
 		try {
-<<<<<<< Updated upstream
-			await createUser();
-			setUserExists(true);
-=======
-			// Use Apex Protocol deposit function
-			console.log('Depositing to Apex Protocol:', {
-				amount,
-				tokenSymbol,
-				user: publicKey.toString(),
+			const response = await fetch('http://localhost:8080/api/deposit', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					wallet: publicKey.toString(),
+					amount: 1000,
+					market: 'USDC',
+				}),
 			});
-
-			// Map token symbols to mint addresses
-			const TOKEN_MINTS: { [key: string]: string } = {
-				USDC: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', // USDC mainnet
-				USDT: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB', // USDT mainnet
-				// Add more tokens as needed
-			};
-
-			// Get the mint address for the token symbol
-			const mintAddress = TOKEN_MINTS[tokenSymbol];
-			if (!mintAddress) {
-				throw new Error(`Unsupported token: ${tokenSymbol}`);
+			const result = await response.json();
+			if (result.success) {
+				alert('Deposit successful!');
+				// Refresh user data
+				const userResponse = await fetch(
+					`http://localhost:8080/api/user/${publicKey.toString()}`
+				);
+				const userData = await userResponse.json();
+				setUserData(userData);
 			}
-
-			// Find the market index for the token
-			const marketIndex = 0; // Default to USDC market for now
-			const mintPubkey = new PublicKey(mintAddress);
-
-			const txId = await apexDeposit(marketIndex, amount, mintPubkey);
-			console.log('Deposit successful:', txId);
-
-			// Refresh user data to show updated balances
-			await refreshUserData();
-
-			alert(`Deposit successful! Transaction: ${txId}`);
-			setShowDepositModal(false);
->>>>>>> Stashed changes
-		} catch (error: any) {
-			console.error('Failed to create user:', error);
-		} finally {
-			setIsCreatingUser(false);
+		} catch (error) {
+			console.error('Deposit failed:', error);
+			alert('Deposit failed');
 		}
+		setLoading(false);
 	};
 
-	const handleMarketSelect = (market: UIMarketData) => {
-		setSelectedMarket(market);
-	};
+	const handlePlaceOrder = async () => {
+		if (!connected || !publicKey || !selectedMarket) {
+			alert('Please connect wallet and select a market');
+			return;
+		}
 
-	const handlePlaceOrder = async (orderData: OrderFormData) => {
-		if (!driftService || !publicKey) return;
-
-<<<<<<< Updated upstream
-		console.log('Placing order:', orderData);
-		// TODO: Implement order placement
-=======
+		setLoading(true);
 		try {
-			console.log('Trade Page: Placing order on Apex Protocol...', orderData);
-
-			// For now, show demo message until order placement is implemented
-			console.log('Trade Page: Demo mode - Order would be placed:', orderData);
-			alert(
-				`Demo: ${orderData.side} order for ${orderData.amount} ${selectedMarket?.symbol} would be placed on Apex Protocol`
-			);
-		} catch (error: any) {
-			console.error('Trade Page: Order placement failed:', error);
-
-			// Show error message to user
-			alert(`Order failed: ${error.message || 'Unknown error'}`);
+			const response = await fetch('http://localhost:8080/api/order', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					wallet: publicKey.toString(),
+					market: selectedMarket.symbol,
+					side: orderSide,
+					size: parseFloat(orderAmount),
+					price: parseFloat(orderPrice) || selectedMarket.price,
+					type: orderPrice ? 'limit' : 'market',
+				}),
+			});
+			const result = await response.json();
+			if (result.success) {
+				alert('Order placed successfully!');
+				setOrderAmount('');
+				setOrderPrice('');
+			}
+		} catch (error) {
+			console.error('Order failed:', error);
+			alert('Order failed');
 		}
->>>>>>> Stashed changes
+		setLoading(false);
 	};
 
-	// ✅ PROFESSIONAL TRADING INTERFACE - Drift-style layout
 	return (
-		<div className="min-h-screen bg-gray-900">
-			{/* Top Navigation */}
-			<TopNavigation
-				onCreateAccount={
-					connected && !userExists ? handleCreateUser : undefined
-				}
-				isCreatingAccount={isCreatingUser}
-			/>
+		<div className="min-h-screen bg-black text-white">
+			{/* Top Banner */}
+			<div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white text-center py-2 text-sm relative">
+				Trade <span className="font-bold">NGT</span> and{' '}
+				<span className="font-bold">Commodities</span> with{' '}
+				<span className="font-bold">0% fees</span>
+				<button className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-200">
+					<svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+						<path
+							fillRule="evenodd"
+							d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+							clipRule="evenodd"
+						/>
+					</svg>
+				</button>
+			</div>
+
+			{/* Main Header */}
+			<header className="bg-gray-900 border-b border-gray-800 px-6 py-3">
+				<div className="flex items-center justify-between">
+					<div className="flex items-center space-x-8">
+						{/* Logo */}
+						<div className="flex items-center space-x-3">
+							<div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
+								<span className="text-white font-bold text-sm">A</span>
+							</div>
+							<span className="text-white text-xl font-bold">
+								Apex Protocol
+							</span>
+						</div>
+
+						{/* Navigation */}
+						<nav className="flex items-center space-x-6">
+							<a
+								href="/"
+								className="text-gray-400 hover:text-white transition-colors text-sm font-medium"
+							>
+								Overview
+							</a>
+							<button className="text-white font-medium text-sm">Trade</button>
+							<a
+								href="/earn"
+								className="text-gray-400 hover:text-white transition-colors text-sm font-medium"
+							>
+								Earn
+							</a>
+							<a
+								href="/vaults"
+								className="text-gray-400 hover:text-white transition-colors text-sm font-medium"
+							>
+								Vaults
+							</a>
+							<a
+								href="/stake"
+								className="text-gray-400 hover:text-white transition-colors text-sm font-medium"
+							>
+								🔥 Stake APEX
+							</a>
+						</nav>
+					</div>
+
+					{/* Apex Logo in Upper Right */}
+					<div className="flex items-center space-x-4">
+						<div className="flex items-center space-x-2">
+							<div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
+								<span className="text-white font-bold text-lg">A</span>
+							</div>
+							<span className="text-white font-bold text-lg">APEX</span>
+						</div>
+						<WalletButton />
+					</div>
+				</div>
+			</header>
 
 			{/* Market Header */}
-			<MarketHeader
-				selectedMarket={selectedMarket}
-				markets={markets}
-				onMarketSelect={handleMarketSelect}
-			/>
-
-			{/* Main Trading Interface - Drift-style Grid Layout */}
-			<div className="flex-1 flex flex-col overflow-hidden">
-				{/* Trading Grid */}
-				<div className="grid grid-cols-12 gap-4 flex-1">
-					{/* Main Chart Area */}
-					<div className="col-span-12 lg:col-span-9 bg-gray-900 rounded">
-						<div className="h-full">
-<<<<<<< Updated upstream
-							<AdvancedChart selectedMarket={selectedMarket} />
-=======
-							<TradingViewWidget
-								selectedMarket={selectedMarket}
-								height={500}
-								theme="dark"
-							/>
->>>>>>> Stashed changes
-						</div>
-					</div>
-
-					{/* Right Sidebar - Order Book & Order Form */}
-					<div className="col-span-12 lg:col-span-3 flex flex-col gap-1">
-						{/* Order Book */}
-						<div className="bg-gray-900 rounded flex-1">
-							<OrderBook
-								selectedMarket={selectedMarket}
-								onPriceClick={setOrderBookPrice}
-							/>
-						</div>
-
-						{/* Order Form */}
-						<div className="bg-gray-900 rounded flex-1">
-							<EnhancedOrderForm
-								selectedMarket={selectedMarket}
-								onSubmit={handlePlaceOrder}
-								onPriceFromOrderBook={orderBookPrice}
-							/>
-						</div>
-					</div>
-				</div>
-
-				{/* Bottom Tabs - Positions, Orders, etc. */}
-				<div className="bg-gray-900 border-t border-gray-800">
-					<div className="max-w-7xl mx-auto">
-						{/* Tab Navigation */}
-						<div className="flex border-b border-gray-800">
-							<button
-								onClick={() => setActiveBottomTab('positions')}
-								className={`px-6 py-3 text-sm font-medium ${
-									activeBottomTab === 'positions'
-										? 'text-white bg-gray-800 border-b-2 border-purple-500'
-										: 'text-gray-400 hover:text-white'
-								}`}
-							>
-								Positions
-							</button>
-							<button
-								onClick={() => setActiveBottomTab('orders')}
-								className={`px-6 py-3 text-sm font-medium ${
-									activeBottomTab === 'orders'
-										? 'text-white bg-gray-800 border-b-2 border-purple-500'
-										: 'text-gray-400 hover:text-white'
-								}`}
-							>
-								Orders
-							</button>
-							<button
-								onClick={() => setActiveBottomTab('trades')}
-								className={`px-6 py-3 text-sm font-medium ${
-									activeBottomTab === 'trades'
-										? 'text-white bg-gray-800 border-b-2 border-purple-500'
-										: 'text-gray-400 hover:text-white'
-								}`}
-							>
-								Trades
-							</button>
-							<button
-								onClick={() => setActiveBottomTab('balances')}
-								className={`px-6 py-3 text-sm font-medium ${
-									activeBottomTab === 'balances'
-										? 'text-white bg-gray-800 border-b-2 border-purple-500'
-										: 'text-gray-400 hover:text-white'
-								}`}
-							>
-								Balances
-							</button>
-							<button
-								onClick={() => setActiveBottomTab('orderHistory')}
-								className={`px-6 py-3 text-sm font-medium ${
-									activeBottomTab === 'orderHistory'
-										? 'text-white bg-gray-800 border-b-2 border-purple-500'
-										: 'text-gray-400 hover:text-white'
-								}`}
-							>
-								Order History
-							</button>
-							<button
-								onClick={() => setActiveBottomTab('positionHistory')}
-								className={`px-6 py-3 text-sm font-medium ${
-									activeBottomTab === 'positionHistory'
-										? 'text-white bg-gray-800 border-b-2 border-purple-500'
-										: 'text-gray-400 hover:text-white'
-								}`}
-							>
-								Position History
-							</button>
-							<button
-								onClick={() => setActiveBottomTab('account')}
-								className={`px-6 py-3 text-sm font-medium ${
-									activeBottomTab === 'account'
-										? 'text-white bg-gray-800 border-b-2 border-purple-500'
-										: 'text-gray-400 hover:text-white'
-								}`}
-							>
-								Account
-							</button>
-							<div className="ml-auto flex items-center px-6">
-								<button className="text-gray-400 hover:text-white">
-									<svg
-										className="w-4 h-4"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											strokeWidth={2}
-											d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v18"
-										/>
-									</svg>
-								</button>
-								<span className="text-gray-400 text-sm ml-2">1</span>
-							</div>
-						</div>
-
-						{/* Tab Content */}
-<<<<<<< Updated upstream
-						<div className="p-6">
-							{activeBottomTab === 'positions' && (
-								<PositionsTable positions={positions} />
-							)}
-							{activeBottomTab === 'orders' && (
-								<div className="text-gray-400 text-center py-8">
-									<p>No open orders</p>
-								</div>
-							)}
-							{activeBottomTab === 'trades' && (
-								<div className="text-gray-400 text-center py-8">
-									<p>No recent trades</p>
-								</div>
-							)}
-							{activeBottomTab === 'balances' && (
-								<div className="max-w-4xl">
-									<TokenBalances />
-								</div>
-							)}
-							{activeBottomTab === 'orderHistory' && (
-								<div className="text-gray-400 text-center py-8">
-									<p>No order history</p>
-								</div>
-							)}
-							{activeBottomTab === 'positionHistory' && (
-								<div className="text-gray-400 text-center py-8">
-									<p>No position history</p>
-								</div>
-							)}
-							{activeBottomTab === 'account' && (
-								<div className="text-gray-400 text-center py-8">
-									<p>Account information</p>
-								</div>
-							)}
-=======
-						<div className="">
-							{activeBottomTab === 'positions' && <PositionsTab />}
-							{activeBottomTab === 'orders' && <OrdersTab />}
-							{activeBottomTab === 'trades' && <HistoryTab />}
-							{activeBottomTab === 'balances' && <BalanceTab />}
-							{activeBottomTab === 'orderHistory' && <HistoryTab />}
-							{activeBottomTab === 'positionHistory' && <PositionsTab />}
-							{activeBottomTab === 'account' && <BalanceTab />}
->>>>>>> Stashed changes
-						</div>
-					</div>
-				</div>
-			</div>
-<<<<<<< Updated upstream
-=======
-
-			{/* Deposit Modal */}
-			{showDepositModal && (
-				<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-					<div className="bg-gray-800 rounded-lg p-6 w-96 max-w-md">
-						<h3 className="text-xl font-semibold text-white mb-4">
-							Deposit Funds
-						</h3>
-						<div className="space-y-4">
-							<div>
-								<label className="block text-sm font-medium text-gray-300 mb-2">
-									Amount (USDC)
-								</label>
-								<input
-									type="number"
-									placeholder="Enter amount"
-									className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-green-500"
-									id="deposit-amount"
-								/>
-							</div>
-							<div className="flex space-x-3">
-								<button
-									onClick={() => {
-										const amountInput = document.getElementById(
-											'deposit-amount'
-										) as HTMLInputElement;
-										const amount = parseFloat(amountInput?.value || '0');
-										if (amount > 0) {
-											handleDepositSubmit(amount, 'USDC');
-										} else {
-											alert('Please enter a valid amount');
-										}
+			{selectedMarket && (
+				<div className="bg-gray-900 border-b border-gray-800 px-6 py-4">
+					<div className="flex items-center justify-between">
+						<div className="flex items-center space-x-6">
+							{/* Market Selector */}
+							<div className="relative">
+								<select
+									value={selectedMarket.symbol}
+									onChange={(e) => {
+										const market = markets.find(
+											(m) => m.symbol === e.target.value
+										);
+										if (market) setSelectedMarket(market);
 									}}
-									disabled={isDepositing}
-									className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
-										isDepositing
-											? 'bg-gray-600 text-gray-300 cursor-not-allowed'
-											: 'bg-green-600 hover:bg-green-700 text-white'
-									}`}
+									className="bg-gray-800 text-white px-4 py-2 rounded-lg border border-gray-700 focus:border-purple-500 focus:outline-none appearance-none pr-8"
 								>
-									{isDepositing ? 'Depositing...' : 'Deposit'}
-								</button>
-								<button
-									onClick={() => setShowDepositModal(false)}
-									className="flex-1 py-2 px-4 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors"
+									{markets.map((market) => (
+										<option key={market.symbol} value={market.symbol}>
+											{market.name} ({market.symbol})
+										</option>
+									))}
+								</select>
+								<svg
+									className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+									fill="currentColor"
+									viewBox="0 0 20 20"
 								>
-									Cancel
-								</button>
+									<path
+										fillRule="evenodd"
+										d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+										clipRule="evenodd"
+									/>
+								</svg>
+							</div>
+
+							{/* Price Info */}
+							<div className="flex items-center space-x-4">
+								<div>
+									<div className="text-2xl font-bold text-white">
+										${selectedMarket.price.toFixed(2)}
+									</div>
+									<div
+										className={`text-sm ${
+											selectedMarket.change24h >= 0
+												? 'text-green-400'
+												: 'text-red-400'
+										}`}
+									>
+										{selectedMarket.change24h >= 0 ? '+' : ''}
+										{selectedMarket.change24h.toFixed(2)}%
+									</div>
+								</div>
+								<div className="text-sm text-gray-400">
+									<div>24h High: ${selectedMarket.high24h.toFixed(2)}</div>
+									<div>24h Low: ${selectedMarket.low24h.toFixed(2)}</div>
+								</div>
+								<div className="text-sm text-gray-400">
+									<div>
+										Volume: ${(selectedMarket.volume24h / 1000000).toFixed(1)}M
+									</div>
+									<div>
+										Funding: {(selectedMarket.fundingRate * 100).toFixed(4)}%
+									</div>
+								</div>
 							</div>
 						</div>
 					</div>
 				</div>
 			)}
->>>>>>> Stashed changes
+
+			{/* Main Trading Interface */}
+			<div className="flex h-[calc(100vh-200px)]">
+				{/* Chart Area */}
+				<div className="flex-1 bg-black border-r border-gray-800">
+					<div className="h-full flex items-center justify-center">
+						<div className="text-center">
+							<div className="text-6xl mb-4">📈</div>
+							<div className="text-xl font-bold mb-2">TradingView Chart</div>
+							<div className="text-gray-400">
+								Live {selectedMarket?.name || 'Commodity'} Price Chart
+							</div>
+							{selectedMarket && (
+								<div className="mt-4 text-3xl font-bold text-green-400">
+									${selectedMarket.price.toFixed(2)}
+								</div>
+							)}
+						</div>
+					</div>
+				</div>
+
+				{/* Trading Panel */}
+				<div className="w-80 bg-gray-900 p-6">
+					<div className="space-y-6">
+						{/* Order Type Tabs */}
+						<div className="flex bg-gray-800 rounded-lg p-1">
+							<button
+								onClick={() => setOrderSide('buy')}
+								className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+									orderSide === 'buy'
+										? 'bg-green-600 text-white'
+										: 'text-gray-400 hover:text-white'
+								}`}
+							>
+								Buy
+							</button>
+							<button
+								onClick={() => setOrderSide('sell')}
+								className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+									orderSide === 'sell'
+										? 'bg-red-600 text-white'
+										: 'text-gray-400 hover:text-white'
+								}`}
+							>
+								Sell
+							</button>
+						</div>
+
+						{/* Order Form */}
+						<div className="space-y-4">
+							<div>
+								<label className="block text-gray-400 text-sm mb-2">
+									Amount
+								</label>
+								<input
+									type="number"
+									value={orderAmount}
+									onChange={(e) => setOrderAmount(e.target.value)}
+									placeholder="0.00"
+									className="w-full bg-gray-800 text-white px-3 py-3 rounded-lg border border-gray-700 focus:border-purple-500 focus:outline-none"
+								/>
+							</div>
+
+							<div>
+								<label className="block text-gray-400 text-sm mb-2">
+									Price (Leave empty for market order)
+								</label>
+								<input
+									type="number"
+									value={orderPrice}
+									onChange={(e) => setOrderPrice(e.target.value)}
+									placeholder={
+										selectedMarket ? selectedMarket.price.toFixed(2) : '0.00'
+									}
+									className="w-full bg-gray-800 text-white px-3 py-3 rounded-lg border border-gray-700 focus:border-purple-500 focus:outline-none"
+								/>
+							</div>
+
+							<div>
+								<label className="block text-gray-400 text-sm mb-2">
+									Leverage: {leverage}x
+								</label>
+								<input
+									type="range"
+									min="1"
+									max="100"
+									value={leverage}
+									onChange={(e) => setLeverage(parseInt(e.target.value))}
+									className="w-full accent-purple-500"
+								/>
+							</div>
+
+							<button
+								onClick={handlePlaceOrder}
+								disabled={loading || !connected}
+								className={`w-full py-3 rounded-lg font-medium transition-colors ${
+									orderSide === 'buy'
+										? 'bg-green-600 hover:bg-green-700 text-white'
+										: 'bg-red-600 hover:bg-red-700 text-white'
+								} disabled:opacity-50 disabled:cursor-not-allowed`}
+							>
+								{loading
+									? 'Processing...'
+									: `${orderSide.toUpperCase()} ${
+											selectedMarket?.symbol || ''
+									  }`}
+							</button>
+						</div>
+
+						{/* Quick Deposit */}
+						{connected && (
+							<div className="border-t border-gray-800 pt-4">
+								<button
+									onClick={handleDeposit}
+									disabled={loading}
+									className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-medium disabled:opacity-50"
+								>
+									{loading ? 'Processing...' : 'Quick Deposit $1000 USDC'}
+								</button>
+							</div>
+						)}
+					</div>
+				</div>
+			</div>
+
+			{/* Bottom Panel */}
+			<div className="bg-gray-900 border-t border-gray-800">
+				<div className="flex border-b border-gray-800">
+					{['Positions', 'Orders', 'Balances', 'History'].map((tab) => (
+						<button
+							key={tab}
+							onClick={() => setActiveTab(tab)}
+							className={`px-6 py-3 text-sm font-medium transition-colors ${
+								activeTab === tab
+									? 'text-white border-b-2 border-purple-500 bg-gray-800'
+									: 'text-gray-400 hover:text-white'
+							}`}
+						>
+							{tab}
+							{tab === 'Positions' && userData?.positions && (
+								<span className="ml-2 bg-gray-600 text-white text-xs px-1.5 py-0.5 rounded">
+									{userData.positions.length}
+								</span>
+							)}
+						</button>
+					))}
+				</div>
+
+				<div className="h-48 p-4 overflow-auto">
+					{!connected ? (
+						<div className="text-center py-8">
+							<div className="text-gray-400 mb-4">
+								Connect your wallet to view {activeTab.toLowerCase()}
+							</div>
+							<WalletButton />
+						</div>
+					) : (
+						<div>
+							{activeTab === 'Positions' && (
+								<div>
+									{userData?.positions?.length ? (
+										<div className="space-y-2">
+											{userData.positions.map((position, index) => (
+												<div
+													key={index}
+													className="flex justify-between items-center bg-gray-800 p-3 rounded"
+												>
+													<div>
+														<div className="font-medium">{position.market}</div>
+														<div className="text-sm text-gray-400">
+															{position.side} {position.size}
+														</div>
+													</div>
+													<div className="text-right">
+														<div
+															className={
+																position.pnl >= 0
+																	? 'text-green-400'
+																	: 'text-red-400'
+															}
+														>
+															${position.pnl.toFixed(2)}
+														</div>
+														<div className="text-sm text-gray-400">
+															Entry: ${position.entryPrice.toFixed(2)}
+														</div>
+													</div>
+												</div>
+											))}
+										</div>
+									) : (
+										<div className="text-gray-400 text-center py-8">
+											No open positions
+										</div>
+									)}
+								</div>
+							)}
+
+							{activeTab === 'Balances' && userData && (
+								<div className="space-y-2">
+									<div className="flex justify-between items-center bg-gray-800 p-3 rounded">
+										<span>Total Collateral</span>
+										<span className="font-bold">
+											${userData.totalCollateral.toFixed(2)}
+										</span>
+									</div>
+									<div className="flex justify-between items-center bg-gray-800 p-3 rounded">
+										<span>Available Balance</span>
+										<span className="font-bold text-green-400">
+											${userData.availableBalance.toFixed(2)}
+										</span>
+									</div>
+									{Object.entries(userData.balances).map(([token, balance]) => (
+										<div
+											key={token}
+											className="flex justify-between items-center bg-gray-800 p-3 rounded"
+										>
+											<span>{token}</span>
+											<span>{balance.toFixed(2)}</span>
+										</div>
+									))}
+								</div>
+							)}
+
+							{activeTab === 'Orders' && (
+								<div>
+									{userData?.orders?.length ? (
+										<div className="space-y-2">
+											{userData.orders.map((order, index) => (
+												<div
+													key={index}
+													className="flex justify-between items-center bg-gray-800 p-3 rounded"
+												>
+													<div>
+														<div className="font-medium">{order.market}</div>
+														<div className="text-sm text-gray-400">
+															{order.side} {order.size} @ ${order.price}
+														</div>
+													</div>
+													<div className="text-right">
+														<div className="text-yellow-400">
+															{order.status}
+														</div>
+														<button className="text-red-400 hover:text-red-300 text-sm">
+															Cancel
+														</button>
+													</div>
+												</div>
+											))}
+										</div>
+									) : (
+										<div className="text-gray-400 text-center py-8">
+											No open orders
+										</div>
+									)}
+								</div>
+							)}
+
+							{activeTab === 'History' && (
+								<div className="text-gray-400 text-center py-8">
+									Trade history will appear here
+								</div>
+							)}
+						</div>
+					)}
+				</div>
+			</div>
+
+			{/* USDC APY Panel */}
+			<div className="fixed bottom-4 right-4 bg-gradient-to-r from-green-600 to-blue-600 text-white p-4 rounded-lg shadow-lg max-w-sm">
+				<div className="flex items-center justify-between">
+					<div>
+						<div className="font-bold text-lg">USDC 5.81% APY</div>
+						<div className="text-sm opacity-90">
+							Earn APY while trading commodities.
+						</div>
+						<button
+							onClick={handleDeposit}
+							className="bg-white text-green-600 px-3 py-1 rounded font-medium text-sm mt-2 hover:bg-gray-100 transition-colors"
+						>
+							Deposit now!
+						</button>
+					</div>
+					<div className="text-3xl">💰</div>
+				</div>
+			</div>
 		</div>
 	);
 }

@@ -1,7 +1,7 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { WalletProviders } from '../src/providers/WalletProviders';
-import { DriftProvider } from '../src/providers/DriftProvider';
+import { ProductionApexProvider } from '../src/contexts/ProductionApexProvider';
 import { Suspense } from 'react';
 
 export const metadata: Metadata = {
@@ -29,11 +29,7 @@ export default function RootLayout({
 					}
 				>
 					<WalletProviders>
-<<<<<<< Updated upstream
-						<DriftProvider>{children}</DriftProvider>
-=======
 						<ProductionApexProvider>{children}</ProductionApexProvider>
->>>>>>> Stashed changes
 					</WalletProviders>
 				</Suspense>
 			</body>
